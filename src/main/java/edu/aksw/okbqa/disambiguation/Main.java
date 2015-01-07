@@ -9,7 +9,7 @@ import java.net.URI;
 
 /**
  * Main class. Uses a grizzly server to provide REST access to the disambiguation
- * framework implementated herein.
+ * framework implemented herein.
  * @author ngonga 
  */
 public class Main {
