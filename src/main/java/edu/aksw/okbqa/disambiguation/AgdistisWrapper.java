@@ -20,7 +20,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 /**
- *
+ * Wraps AGDISTIS
  * @author ngonga
  */
 public class AgdistisWrapper {

@@ -127,7 +127,7 @@ public class Service {
             nedBody.put("properties", properties);
             ned.add(nedBody);
             object.put("ned", ned);
-            LOGGER.log(Level.INFO, "Output for {0} is "+object.toJSONString(), data);
+            LOGGER.log(Level.INFO, "Output for"+data+" is "+object.toJSONString(), data);
             return object.toJSONString();
             //System.out.println(object);
 
@@ -136,7 +136,7 @@ public class Service {
             LOGGER.log(Level.SEVERE, "Error message {0}", e.toString());
             System.err.println(e.getMessage());
         }
-        LOGGER.log(Level.WARNING, "Something when wrong when processing {0}", data);
+        LOGGER.log(Level.WARNING, "Something when wrong when processing "+data+". Returning null.");
         return "null";
     }
 
