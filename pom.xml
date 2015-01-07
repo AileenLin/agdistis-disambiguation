@@ -4,10 +4,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>edu.aksw.okbqa.disambiguation</groupId>
-    <artifactId>simple-service</artifactId>
+    <artifactId>agdistis-disambiguation</artifactId>
     <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>simple-service</name>
+    <name>agdistis-disambiguation</name>
 
     <dependencyManagement>
         <dependencies>

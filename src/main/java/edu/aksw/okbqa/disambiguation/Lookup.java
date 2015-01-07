@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  */
 public class Lookup {
 
-    private final static Logger LOGGER = Logger.getLogger(Lookup.class.getName());
+    private final static Logger LOGGER = Logger.getLogger(Main.class.getName());
     private Map<String, Set<String>> dictionary;
     private boolean doneInit = false;
     public static String SPLIT = " rdfs:label ";

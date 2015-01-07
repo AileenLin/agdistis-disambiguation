@@ -8,8 +8,9 @@ import java.io.IOException;
 import java.net.URI;
 
 /**
- * Main class.
- *
+ * Main class. Uses a grizzly server to provide REST access to the disambiguation
+ * framework implementated herein.
+ * @author ngonga 
  */
 public class Main {
     // Base URI the Grizzly HTTP server will listen on
