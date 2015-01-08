@@ -145,14 +145,7 @@ public class Service {
         return "null";
     }
 
-    @POST
-    @Path("/disambiguate")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public String disambiguate(@PathParam("disambiguate") String data) {
-        System.out.println("Got call");
-        return getIt(data);
-    }
+   
 
     /**
      * Takes the output of a lookup service, e.g., AGDISTIS, and returns a
