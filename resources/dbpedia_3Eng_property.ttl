@@ -25106,3 +25106,5 @@ http://dbpedia.org/property/mostAppearances rdfs:label "most appearances" .
 http://dbpedia.org/property/laborParty rdfs:label "Labor party" .
 http://dbpedia.org/property/facultyStudent rdfs:label "faculty:student" .
 http://dbpedia.org/ontology/network rdfs:label "network" .
+http://dbpedia.org/ontology/city rdfs:label "flow" .
+http://dbpedia.org/ontology/city rdfs:label "flow through" .

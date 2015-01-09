@@ -25,7 +25,7 @@ public class Lookup {
     private Map<String, Set<String>> dictionary;
     private boolean doneInit = false;
     public static String SPLIT = " rdfs:label ";
-    
+    public static double THRESHOLD = 0.2;
     public Lookup(String file)
     {
         init(file);
@@ -78,12 +78,24 @@ public class Lookup {
                 for(String r: resources)
                 {
                     if(!count.containsKey(r))
-                        count.put(r, 1d/trigrams.size());
+                        count.put(r, 1d);
                     else
-                        count.put(r, count.get(r)+1d/trigrams.size());
+                        count.put(r, count.get(r)+1d);
                 }
             }
         }
+        Set<String> toRemove = new HashSet<String>();
+        for(String k: count.keySet())
+        {
+            double score = 2*count.get(k)/(k.length() + s.length());
+            if(score >= THRESHOLD)
+            count.put(k, score);
+            else toRemove.add(k);
+        }
+        
+        for(String k:toRemove)
+            count.remove(k);
+        
         return count;
     }
 

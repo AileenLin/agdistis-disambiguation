@@ -192,7 +192,9 @@ public class Service {
         String data = "{\"question\":\"Who did that and wo?\",\"slots\" : "
                 + "[ {\"s\" : \"?x\", \"p\" : \"verbalization\", \"o\" : \"flow through\"},"
                 + "{\"s\" : \"?x\", \"p\" : \"is\", \"o\" : \"rdf:Property\"},"
-                + " {\"s\" : \"?y\", \"p\" : \"verbalization\", \"o\" : \"Mapo Bridge\"}, "
+                + " {\"s\" : \"?y\", \"p\" : \"verbalization\", \"o\" : \"Gunsan\"}, "
+                + " {\"s\" : \"?z\", \"p\" : \"verbalization\", \"o\" : \"rivers\"},"
+                + "{\"s\" : \"?z\", \"p\" : \"is\", \"o\" : \"rdf:Class\"},"
                 + "] "
                 + "}";
         System.out.println(aw.getIt(data));
