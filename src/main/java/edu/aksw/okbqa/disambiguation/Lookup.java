@@ -17,20 +17,23 @@ import java.util.regex.Pattern;
 
 /**
  * Implements trigram-based lookup for dictionaries
+ *
  * @author ngonga
  */
 public class Lookup {
 
     private final static Logger LOGGER = Logger.getLogger(Main.class.getName());
-    private Map<String, Set<String>> dictionary;
+    private Map<String, Set<String>> trigramsDictionary;
+    private Map<String, Set<String>> labelDictionary;
     private boolean doneInit = false;
     public static String SPLIT = " rdfs:label ";
-    public static double THRESHOLD = 0.2;
-    public Lookup(String file)
-    {
+    public static double THRESHOLD = 0.5;
+
+    public Lookup(String file) {
         init(file);
     }
     //inits in case init as not yet been carried out    
+
     public void init(String file) {
         if (!doneInit) {
             reInit(file);
@@ -42,19 +45,26 @@ public class Lookup {
     public void reInit(String file) {
         //assume tab-separated file
         try {
-            dictionary = new HashMap<>();
+            trigramsDictionary = new HashMap<>();
+            labelDictionary = new HashMap<>();
+
             BufferedReader in = new BufferedReader(new FileReader(new File(file)));
             String s = in.readLine();
             while (s != null) {
                 String split[] = s.split(SPLIT);
                 if (split.length >= 2) {
+                    if (!labelDictionary.containsKey(split[0])) {
+                        labelDictionary.put(split[0], new HashSet<String>());
+                    }
+
                     for (int i = 1; i < split.length; i++) {
                         Set<String> trigrams = getTrigrams(clean(split[i]));
+                        labelDictionary.get(split[0]).add(split[i]);
                         for (String t : trigrams) {
-                            if (!dictionary.containsKey(t)) {
-                                dictionary.put(t, new HashSet<String>());
+                            if (!trigramsDictionary.containsKey(t)) {
+                                trigramsDictionary.put(t, new HashSet<String>());
                             }
-                            dictionary.get(t).add(split[0]);
+                            trigramsDictionary.get(t).add(split[0]);
                         }
                     }
                 }
@@ -70,72 +80,72 @@ public class Lookup {
     public Map<String, Double> lookup(String s) {
         Set<String> trigrams = getTrigrams(s);
         Map<String, Double> count = new HashMap<>();
-        for(String t: trigrams)
-        {
-            if(dictionary.containsKey(t))
-            {
-                Set<String> resources = dictionary.get(t);
-                for(String r: resources)
-                {
-                    if(!count.containsKey(r))
+        for (String t : trigrams) {
+            if (trigramsDictionary.containsKey(t)) {
+                Set<String> resources = trigramsDictionary.get(t);
+                for (String r : resources) {
+                    if (!count.containsKey(r)) {
                         count.put(r, 1d);
-                    else
-                        count.put(r, count.get(r)+1d);
+                    } else {
+                        count.put(r, count.get(r) + 1d);
+                    }
                 }
             }
         }
-        Set<String> toRemove = new HashSet<String>();
-        for(String k: count.keySet())
-        {
-            double score = 2*count.get(k)/(k.length() + s.length());
-            if(score >= THRESHOLD)
-            count.put(k, score);
-            else toRemove.add(k);
+        Map<String, Double> scores = new HashMap<>();
+        for (String resource : count.keySet()) {
+            for (String label : labelDictionary.get(resource)) {
+
+                double score = 2 * count.get(resource) / (label.length() + s.length());
+                System.out.println(resource + " => " + label +" => "+ s + " : " + score);
+                if (score >= THRESHOLD) {
+                    if (scores.containsKey(resource)) {
+                        double max = Math.max(score, scores.get(resource));
+                        scores.put(resource, max);
+                    } else {
+                        scores.put(resource, score);
+                    }
+                }
+            }
         }
-        
-        for(String k:toRemove)
-            count.remove(k);
-        
-        return count;
+        return scores;
     }
 
-    public Map<String, String> lookupVars (Map<String, String> vars)
-    {
+    public Map<String, String> lookupVars(Map<String, String> vars) {
         Map<String, String> result = new HashMap<>();
-        for(String var: vars.keySet())
+        for (String var : vars.keySet()) {
             result.put(var, lookupBest(vars.get(var)).keySet().iterator().next());
+        }
         return result;
     }
-    
-    public Map<String, Map<String, Double>> lookupVarsWithScore (Map<String, String> vars)
-    {
+
+    public Map<String, Map<String, Double>> lookupVarsWithScore(Map<String, String> vars) {
         Map<String, Map<String, Double>> result = new HashMap<>();
-        for(String var: vars.keySet())
+        for (String var : vars.keySet()) {
             result.put(var, lookup(vars.get(var)));
+        }
         return result;
     }
     //returns best match with score
-    public Map<String, Double> lookupBest(String s)
-    {
+
+    public Map<String, Double> lookupBest(String s) {
         Map<String, Double> matches = lookup(s);
         double max = 0d;
         String best = null;
-        for(String r: matches.keySet())
-        {
-            if(matches.get(r) > max)
-            {
+        for (String r : matches.keySet()) {
+            if (matches.get(r) > max) {
                 max = matches.get(r);
-             best = r;   
+                best = r;
             }
         }
         Map<String, Double> result = new HashMap<>();
         result.put(best, max);
         return result;
     }
-    
+
     //commodity. Compute all trigrams for a given string
     public static Set<String> getTrigrams(String s) {
-        
+
         Set<String> result = new HashSet<>();
         String t = "  " + clean(s);
         for (int i = 0; i < t.length() - 3; i++) {
@@ -145,11 +155,11 @@ public class Lookup {
     }
 
     public static void main(String args[]) {
-        Lookup l = new Lookup("resources/dbpedia_3Eng_class.ttl");
-        System.out.println(l.lookup("football"));
+        Lookup l = new Lookup("resources/dbpedia_3Eng_property.ttl");
+        System.out.println(l.lookup("flows"));
     }
 
-    private static String clean(String string) {       
+    private static String clean(String string) {
         return string.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase();
     }
 }

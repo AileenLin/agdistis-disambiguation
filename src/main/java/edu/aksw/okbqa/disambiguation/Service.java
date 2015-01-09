@@ -190,7 +190,7 @@ public class Service {
     public static void main(String args[]) {
         Service aw = new Service();
         String data = "{\"question\":\"Who did that and wo?\",\"slots\" : "
-                + "[ {\"s\" : \"?x\", \"p\" : \"verbalization\", \"o\" : \"flow through\"},"
+                + "[ {\"s\" : \"?x\", \"p\" : \"verbalization\", \"o\" : \"flow\"},"
                 + "{\"s\" : \"?x\", \"p\" : \"is\", \"o\" : \"rdf:Property\"},"
                 + " {\"s\" : \"?y\", \"p\" : \"verbalization\", \"o\" : \"Gunsan\"}, "
                 + " {\"s\" : \"?z\", \"p\" : \"verbalization\", \"o\" : \"rivers\"},"
