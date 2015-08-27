@@ -1,22 +1,21 @@
 package edu.aksw.okbqa.disambiguation;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 /**
  * Root resource (exposed at "agdistis " path)
@@ -31,6 +30,9 @@ public class Service {
     public static String RESOURCE = "rdf:Resource";
     public static String CLASS = "rdf:Class";
     public static String PROPERTY = "rdf:Property";
+    public static String DATATYPEPROPERTY = "owl:DatatypeProperty";
+    public static String OBJECTPROPERTY = "owl:ObjectProperty";
+    public static String LITERAL = "rdfs:Literal";
     public static final String CLASS_DICTIONARY = "resources/dbpedia_3Eng_class.ttl";
     public static final String PROPERTY_DICTIONARY = "resources/dbpedia_3Eng_property.ttl";
     public static Lookup classLookup = new Lookup(CLASS_DICTIONARY);
@@ -60,9 +62,10 @@ public class Service {
 
         Map<String, String> resourceVar2StringMap = new HashMap<>();
         Map<String, String> classVar2StringMap = new HashMap<>();
-        Map<String, Map<String, Double>> classVar2StringScoreMap = new HashMap<>();
+        Map<String, String> literalVar2StringMap = new HashMap<>();
+        Map<String, Map<String, Double>> classVar2StringScoreMap;
         Map<String, String> propertyVar2StringMap = new HashMap<>();
-        Map<String, Map<String, Double>> propertyVar2StringScoreMap = new HashMap<>();
+        Map<String, Map<String, Double>> propertyVar2StringScoreMap;
 
         LOGGER.log(Level.INFO, "Got input: {0}", data);
         try {
@@ -74,15 +77,26 @@ public class Service {
                 JSONArray vars = (JSONArray) input.get(SLOTS);
 
                 //store the type of each variable
-                Map<String, String> types = new HashMap<>();
+                Map<String, Set<String>> types = new HashMap<>();
                 for (Object var : vars.toArray()) {
                     JSONObject next = (JSONObject) var;
                     if (next.containsKey("s") && next.containsKey("p") && next.containsKey("o")) {
+                        String s = next.get("s").toString();
+                        //types can be sets, e.g., property or class
                         if (next.get("p").equals(TYPE)) {
-                            types.put(next.get("s").toString(), next.get("o").toString());
+                            String typeString = next.get("o").toString();
+                            String[] typeArray = typeString.split(Pattern.quote("|"));
+                            if (!types.containsKey(s)) {
+                                types.put(s, new HashSet<String>());
+                            }
+                            for(int i = 0; i < typeArray.length; i++) {
+                                types.get(s).add(typeArray[i]);
+                            }
                         }
                     }
                 }
+
+                //now store verbalizations
                 for (Object var : vars.toArray()) {
                     JSONObject next = (JSONObject) var;
                     if (next.containsKey("s") && next.containsKey("p") && next.containsKey("o")) {
@@ -92,17 +106,27 @@ public class Service {
                             if (varLabel.startsWith(Pattern.quote("?"))) {
                                 varLabel = varLabel.substring(1);
                             }
-                            if (types.containsKey(next.get("s").toString())) {
-                                if (types.get(next.get("s").toString()).equals(PROPERTY)) {
-                                    propertyVar2StringMap.put(varLabel, next.get("o") + "");
-                                } else if (types.get(next.get("s").toString()).equals(CLASS)) {
-                                    classVar2StringMap.put(varLabel, next.get("o") + "");
-                                } else if (types.get(next.get("s").toString()).equals(RESOURCE)) {
-                                    resourceVar2StringMap.put(varLabel, next.get("o") + "");
+                            String s = next.get("s").toString();
+                            String o = next.get("o") + "";
+                            if (types.containsKey(s)) {
+                                if (types.get(s).contains(PROPERTY) || 
+                                        types.get(s).contains(DATATYPEPROPERTY) ||
+                                        types.get(s).contains(OBJECTPROPERTY)) {
+                                    propertyVar2StringMap.put(varLabel, o);
+                                } 
+                                if (types.get(s).contains(CLASS)) {
+                                    classVar2StringMap.put(varLabel, o);
                                 }
+                                if (types.get(s).contains(RESOURCE)) {
+                                    resourceVar2StringMap.put(varLabel, o);
+                                }
+                                if (types.get(s).contains(LITERAL)) {
+                                    literalVar2StringMap.put(varLabel, o);
+                                }
+                                
                             } //untyped things are assumed to be resources
                             else {
-                                resourceVar2StringMap.put(varLabel, next.get("o") + "");
+                                resourceVar2StringMap.put(varLabel, o);
                             }
                         }
                     }
@@ -113,7 +137,8 @@ public class Service {
             // run dictionary lookup on properties and classes
             classVar2StringScoreMap = classLookup.lookupVarsWithScore(classVar2StringMap);
             propertyVar2StringScoreMap = propertyLookup.lookupVarsWithScore(propertyVar2StringMap);
-
+            // literal are strings. We should add a literal search here
+            
             JSONObject object = new JSONObject();
             if (input.containsKey("question")) {
                 object.put("question", input.get("question"));
@@ -121,7 +146,8 @@ public class Service {
             JSONArray resources = getJSONArray(resourceVar2StringMap);
             JSONArray classes = getScoredJSONArray(classVar2StringScoreMap);
             JSONArray properties = getScoredJSONArray(propertyVar2StringScoreMap);
-
+            JSONArray literals = getJSONArray(literalVar2StringMap);
+            
             JSONArray ned = new JSONArray();
             JSONObject nedBody = new JSONObject();
             nedBody.put("score", 1);
@@ -130,6 +156,7 @@ public class Service {
             nedBody.put("classes", classes);
             //if(!properties.isEmpty())
             nedBody.put("properties", properties);
+            nedBody.put("literals", literals);
             ned.add(nedBody);
             object.put("ned", ned);
             LOGGER.log(Level.INFO, "Output for" + data + " is " + object.toJSONString(), data);
@@ -144,8 +171,6 @@ public class Service {
         LOGGER.log(Level.WARNING, "Something when wrong when processing {0}. Returning null.", data);
         return "null";
     }
-
-   
 
     /**
      * Takes the output of a lookup service, e.g., AGDISTIS, and returns a
@@ -191,7 +216,7 @@ public class Service {
         Service aw = new Service();
         String data = "{\"question\":\"Who did that and wo?\",\"slots\" : "
                 + "[ {\"s\" : \"?x\", \"p\" : \"verbalization\", \"o\" : \"flow\"},"
-                + "{\"s\" : \"?x\", \"p\" : \"is\", \"o\" : \"rdf:Property\"},"
+                + "{\"s\" : \"?x\", \"p\" : \"is\", \"o\" : \"rdf:Property|rdfs:Literal\"},"
                 + " {\"s\" : \"?y\", \"p\" : \"verbalization\", \"o\" : \"Gunsan\"}, "
                 + " {\"s\" : \"?z\", \"p\" : \"verbalization\", \"o\" : \"rivers\"},"
                 + "{\"s\" : \"?z\", \"p\" : \"is\", \"o\" : \"rdf:Class\"},"
