@@ -52,6 +52,7 @@ public class Lookup {
             String s = in.readLine();
             while (s != null) {
                 String split[] = s.split(SPLIT);
+                split[0] = split[0].trim();
                 if (split.length >= 2) {
                     if (!labelDictionary.containsKey(split[0])) {
                         labelDictionary.put(split[0], new HashSet<String>());
