@@ -85,7 +85,7 @@ public class Service {
                         //types can be sets, e.g., property or class
                         if (next.get("p").equals(TYPE)) {
                             String typeString = next.get("o").toString();
-                            String[] typeArray = typeString.split(Pattern.quote("|"));
+                            String[] typeArray = typeString.split(Pattern.quote("_"));
                             if (!types.containsKey(s)) {
                                 types.put(s, new HashSet<String>());
                             }
@@ -216,12 +216,13 @@ public class Service {
         Service aw = new Service();
         String data = "{\"question\":\"Who did that and wo?\",\"slots\" : "
                 + "[ {\"s\" : \"?x\", \"p\" : \"verbalization\", \"o\" : \"flow\"},"
-                + "{\"s\" : \"?x\", \"p\" : \"is\", \"o\" : \"rdf:Property|rdfs:Literal\"},"
+                + "{\"s\" : \"?x\", \"p\" : \"is\", \"o\" : \"rdf:Property_rdfs:Literal\"},"
                 + " {\"s\" : \"?y\", \"p\" : \"verbalization\", \"o\" : \"Gunsan\"}, "
                 + " {\"s\" : \"?z\", \"p\" : \"verbalization\", \"o\" : \"rivers\"},"
                 + "{\"s\" : \"?z\", \"p\" : \"is\", \"o\" : \"rdf:Class\"},"
                 + "] "
                 + "}";
+        String data2 = "{\"query\": \"SELECT ?v4 WHERE { ?v4 ?v2 ?v6 ; ?v7 ?v3 . } \", \"slots\": [{\"p\": \"is\", \"s\": \"v4\", \"o\": \"rdf:Resource\"}, {\"p\": \"verbalization\", \"s\": \"v4\", \"o\": \"Which\"}, {\"p\": \"is\", \"s\": \"v2\", \"o\": \"rdf:Property\"}, {\"p\": \"verbalization\", \"s\": \"v2\", \"o\": \"flow\"}, {\"p\": \"is\", \"s\": \"v6\", \"o\": \"rdf:Resource_rdfs:Literal\"}, {\"p\": \"verbalization\", \"s\": \"v6\", \"o\": \"Gunsan\"}, {\"p\": \"is\", \"s\": \"v7\", \"o\": \"<http://lodqa.org/vocabulary/sort_of>\"}, {\"p\": \"is\", \"s\": \"v3\", \"o\": \"rdf:Class\"}, {\"p\": \"verbalization\", \"s\": \"v3\", \"o\": \"rivers\"}], \"score\": \"1.0\", \"question\": \"Which rivers flow through Gunsan?\"}";
         System.out.println(aw.getIt(data));
     }
 }
