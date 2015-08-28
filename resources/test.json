@@ -1,0 +1,30 @@
+{
+    "question": "Who did that and wo?",
+    "slots": [
+        {
+            "s": "?x",
+            "p": "verbalization",
+            "o": "Free University of Berlin"
+        },
+        {
+            "s": "?y",
+            "p": "verbalization",
+            "o": "University of Leipzig"
+        },
+        {
+            "s": "?y",
+            "p": "is",
+            "o": "rdf:Resource|rdfs:Literal"
+        },
+        {
+            "s": "?z",
+            "p": "verbalization",
+            "o": "connected"
+        },
+        {
+            "s": "?z",
+            "p": "is",
+            "o": "rdf:Property|rdfs:Literal"
+        }
+    ]
+}
